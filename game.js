@@ -1,84 +1,97 @@
 
-let buttonColours = ['red', 'yellow', 'green', 'blue'];
-let gamePattern =[];
+let buttonColours = ["red", "blue", "green", "yellow"];
+
+let gamePattern = [];
 let userClickedPattern = [];
+
 let gameStarted = false;
-var level = 0;
+let level = 0;
 
 function nextSequence(){
 
-    userClickedPattern=[];
+    // array should be empty for the next level
+    userClickedPattern = [];
     level++;
-    $(".level-title").text(`Level ${level}`);
+    $(".level-title").text("Level " + level);
 
-    let randomNumber = Math.floor(Math.random() * 4);
-    let randomChosenColour = buttonColours[randomNumber];
+    var randomNumber = Math.floor(Math.random() * 4);
 
-    gamePattern.push(randomChosenColour);
+    let randomChosenColor = buttonColours[randomNumber];
+    gamePattern.push(randomChosenColor);
 
-    // animate to se which button is selected
-    $(`#${randomChosenColour}`).fadeOut(100).fadeIn(100);
+    $(`#${randomChosenColor}`).fadeOut(100).fadeIn(100);
 
-    //play the specific audio for that button
-    playSound(randomChosenColour);
-
+    playSound(randomChosenColor);
 }
 
-$(".btn").click(function(){
-    let userChosenColour = $(this).attr("id");
-    userClickedPattern.push(userChosenColour);
-
-    playSound(userChosenColour);
-    animatePress(userChosenColour);
-
-    checkAnswer(userClickedPattern.length-1);
-    // console.log(userClickedPattern.length-1);
-});
-
-function playSound(name){
-    var audio = new Audio("sounds/" + name + ".mp3");
+function playSound(color){
+    var audio = new Audio(`sounds/${color}.mp3`);
     audio.play();
 }
 
+$(".btn").click(function(){
+
+    let userChosenColor = $(this).attr("id");
+    userClickedPattern.push(userChosenColor);
+
+    playSound(userChosenColor);
+    animatePress(userChosenColor);
+
+    // check answer after user has clicked a color
+    // passing the last position
+    checkAnswer(userClickedPattern.length-1);
+})
+
 function animatePress(currentColour){
+    // $("#" + currentColor).addClass("pressed");
     $(`#${currentColour}`).addClass("pressed");
-    setTimeout(function () {
+    setTimeout(() => {
         $(`#${currentColour}`).removeClass("pressed");
-    }, 100);
+    }, 200)
 }
 
-$(document).keypress(function () {
+$(document).keypress(function(event){
     if(gameStarted === false){
-        $(".level-title").text("Level " + level);
-        nextSequence();
+        $("#level-title").text("Level " + level);
         gameStarted = true;
+        nextSequence();
     }
 })
 
 function checkAnswer(currentLevel) {
 
+    //check the current position
     if (gamePattern[currentLevel] === userClickedPattern[currentLevel]) {
 
-        console.log("success");
-
+        // check if we reach the end of array
         if (userClickedPattern.length === gamePattern.length){
+
             setTimeout(function () {
                 nextSequence();
             }, 1000);
+
         }
+
+        // good answer, but it's not the last position -> do nothing, wait for click
 
     } else {
 
-        console.log("wrong");
-
         playSound("wrong");
+        $("body").addClass("game-over")
 
-        $("body").addClass("game-over");
         setTimeout(function () {
             $("body").removeClass("game-over");
-        }, 200);
+        }, 300);
 
-        $("#level-title").text("Game Over, Press Any Key to Restart");
+        $(".level-title").html("Game Over<br>Press Any Key to Restart");
+
+        startOver();
     }
-
 }
+
+function startOver() {
+    level = 0;
+    gamePattern = [];
+    gameStarted = false;
+}
+
